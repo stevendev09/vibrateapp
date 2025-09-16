@@ -1,4 +1,4 @@
-const CACHE_NAME = "vibrar-app-v5"; // Cambia esta versión en cada release
+const CACHE_NAME = "vibrar-app-v7"; // Cambia esta versión en cada release
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
