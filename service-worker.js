@@ -95,7 +95,7 @@
 //   }
 // });
 
-const CACHE_NAME = "vibrar-app-v11.2";
+const CACHE_NAME = "vibrar-app-v11.3";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
