@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#6200ea">
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').then(reg => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
 
         // Detecta SW nuevo y notifica
         reg.addEventListener('updatefound', () => {
@@ -38,7 +38,6 @@
         }
       });
     }
-
 
   </script>
   <style>
@@ -74,7 +73,7 @@
 
 <body>
   <button onclick="vibrate()">Vibrar</button>
-test test 24 test
+  test test 24 test
   <script>
     function vibrate() {
       if ("vibrate" in navigator) {

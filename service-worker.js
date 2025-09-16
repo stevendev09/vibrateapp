@@ -1,4 +1,4 @@
-const CACHE_NAME = "vibrar-app-v8.5";
+const CACHE_NAME = "vibrar-app-v8";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -19,9 +19,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null)
-      )
+      Promise.all(keys.map(key => key !== CACHE_NAME ? caches.delete(key) : null))
     )
   );
   self.clients.claim();
@@ -68,7 +66,7 @@ self.addEventListener("fetch", event => {
   );
 });
 
-// Hot reload: escucha mensaje de frontend
+// Hot reload: escucha mensaje del frontend
 self.addEventListener('message', event => {
   if (event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
