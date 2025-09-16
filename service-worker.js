@@ -1,4 +1,4 @@
-const CACHE_NAME = "vibrar-app-v6"; // Cambia esta versión en cada release
+const CACHE_NAME = "vibrar-app-v5"; // Cambia esta versión en cada release
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -29,7 +29,6 @@ self.addEventListener("activate", event => {
 
 // 👉 Estrategia de cache
 self.addEventListener("fetch", event => {
-  // Evitar extensiones del navegador
   if (event.request.url.startsWith("chrome-extension")) return;
 
   // Network-first para navegaciones (HTML)
@@ -39,6 +38,14 @@ self.addEventListener("fetch", event => {
         .then(networkResponse => {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+
+          // Notificar a los clientes que hay una nueva versión
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+              client.postMessage({ type: "NEW_VERSION_AVAILABLE" });
+            });
+          });
+
           return networkResponse;
         })
         .catch(() => caches.match("/index.html"))
@@ -61,9 +68,8 @@ self.addEventListener("fetch", event => {
           return networkResponse;
         })
         .catch(() => {
-          // fallback offline para assets importantes
           if (event.request.destination === "image") {
-            return new Response("", { status: 404 }); // opcional: imagen placeholder
+            return new Response("", { status: 404 });
           }
         });
     })

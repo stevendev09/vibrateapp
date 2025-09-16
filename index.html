@@ -8,9 +8,17 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#6200ea">
   <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        navigator.serviceWorker.addEventListener('message', event => {
+          if (event.data.type === 'NEW_VERSION_AVAILABLE') {
+            alert("¡Nueva versión disponible! Por favor recarga la página.");
+            // opcional: mostrar un botón en la UI para recargar
+          }
+        });
+      });
     }
+
   </script>
   <style>
     body {
