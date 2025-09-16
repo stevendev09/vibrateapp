@@ -8,36 +8,63 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#6200ea">
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').then(reg => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js").then(reg => {
 
-        // Detecta SW nuevo y notifica
-        reg.addEventListener('updatefound', () => {
+        // Detecta SW nuevo en espera
+        function handleSWUpdate(worker) {
+          showUpdateBanner(() => {
+            worker.postMessage({ type: "SKIP_WAITING" });
+            location.reload();
+          });
+        }
+
+        if (reg.waiting) {
+          handleSWUpdate(reg.waiting);
+        }
+
+        reg.addEventListener("updatefound", () => {
           const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                console.log('Nueva versión disponible');
-                // Aquí podrías mostrar un banner o alerta opcional
-              }
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              handleSWUpdate(newWorker);
             }
           });
         });
 
-      });
-
-      // Hot reload inmediato cuando vuelve de segundo plano
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          navigator.serviceWorker.getRegistration().then(reg => {
-            if (reg?.waiting) {
-              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-              location.reload(); // Aplica la nueva versión inmediatamente
-            }
-          });
-        }
+        // Hot reload al volver de segundo plano
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible" && reg.waiting) {
+            handleSWUpdate(reg.waiting);
+          }
+        });
       });
     }
+
+    // Función para mostrar banner flotante
+    function showUpdateBanner(onUpdate) {
+      if (document.getElementById("update-banner")) return;
+
+      const banner = document.createElement("div");
+      banner.id = "update-banner";
+      banner.style.position = "fixed";
+      banner.style.bottom = "20px";
+      banner.style.left = "50%";
+      banner.style.transform = "translateX(-50%)";
+      banner.style.background = "#222";
+      banner.style.color = "#fff";
+      banner.style.padding = "12px 24px";
+      banner.style.borderRadius = "8px";
+      banner.style.boxShadow = "0 2px 10px rgba(0,0,0,0.3)";
+      banner.style.zIndex = "9999";
+      banner.style.cursor = "pointer";
+      banner.textContent = "Nueva versión disponible. Haz click para actualizar.";
+
+      banner.addEventListener("click", onUpdate);
+
+      document.body.appendChild(banner);
+    }
+
 
   </script>
   <style>
