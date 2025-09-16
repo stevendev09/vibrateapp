@@ -9,60 +9,47 @@
   <meta name="theme-color" content="#6200ea">
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js").then(reg => {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js").then(reg => {
+          console.log("SW registrado:", reg);
 
-        // Detecta SW nuevo en espera
-        function handleSWUpdate(worker) {
-          showUpdateBanner(() => {
-            worker.postMessage({ type: "SKIP_WAITING" });
-            location.reload();
-          });
-        }
-
-        if (reg.waiting) {
-          handleSWUpdate(reg.waiting);
-        }
-
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              handleSWUpdate(newWorker);
+          // Función para escuchar actualizaciones
+          function checkForUpdate(reg) {
+            if (reg.waiting) {
+              // ⚡ Nuevo SW instalado y esperando
+              notifyUserAboutUpdate(reg);
             }
-          });
-        });
 
-        // Hot reload al volver de segundo plano
-        document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible" && reg.waiting) {
-            handleSWUpdate(reg.waiting);
+            // Cuando llega un updatefound → hay un nuevo SW en proceso
+            reg.addEventListener("updatefound", () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener("statechange", () => {
+                  if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    // Ya hay uno viejo controlando, el nuevo queda waiting
+                    notifyUserAboutUpdate(reg);
+                  }
+                });
+              }
+            });
           }
+
+          checkForUpdate(reg);
+
+          // Escuchar actualizaciones en tiempo real
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            console.log("SW control cambiado → página recargada con nueva versión");
+          });
         });
       });
     }
 
-    // Función para mostrar banner flotante
-    function showUpdateBanner(onUpdate) {
-      if (document.getElementById("update-banner")) return;
-
-      const banner = document.createElement("div");
-      banner.id = "update-banner";
-      banner.style.position = "fixed";
-      banner.style.bottom = "20px";
-      banner.style.left = "50%";
-      banner.style.transform = "translateX(-50%)";
-      banner.style.background = "#222";
-      banner.style.color = "#fff";
-      banner.style.padding = "12px 24px";
-      banner.style.borderRadius = "8px";
-      banner.style.boxShadow = "0 2px 10px rgba(0,0,0,0.3)";
-      banner.style.zIndex = "9999";
-      banner.style.cursor = "pointer";
-      banner.textContent = "Nueva versión disponible. Haz click para actualizar.";
-
-      banner.addEventListener("click", onUpdate);
-
-      document.body.appendChild(banner);
+    // 🔹 Notificar al usuario
+    function notifyUserAboutUpdate(reg) {
+      if (confirm("Nueva versión disponible. ¿Quieres actualizar ahora?")) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        window.location.reload();
+      }
     }
 
 
