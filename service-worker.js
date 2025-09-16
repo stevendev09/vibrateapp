@@ -1,4 +1,4 @@
-const CACHE_NAME = "vibrar-app-v8";
+const CACHE_NAME = "vibrar-app-v8.1";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
