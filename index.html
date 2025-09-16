@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -100,4 +100,265 @@
   </script>
 </body>
 
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibrar App - Actualización Automática</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6200ea">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #121212, #2d1b69);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      flex-direction: column;
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(40, 40, 40, 0.8);
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      max-width: 90%;
+      width: 400px;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #bb86fc;
+      font-size: 2rem;
+    }
+
+    button {
+      padding: 18px 36px;
+      font-size: 20px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #6200ea;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s;
+      margin: 15px 0;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #3700b3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .version {
+      font-size: 1.2rem;
+      margin: 15px 0;
+      color: #03dac6;
+    }
+
+    .status {
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .update-progress {
+      margin-top: 15px;
+      height: 6px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #03dac6;
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vibrar App</h1>
+    <button onclick="vibrate()">Vibrar</button>
+    <div class="version">Versión: <span id="version">11.2</span></div>
+    <div class="status" id="status">Estado: <span id="statusText">Conectado</span></div>
+    <div class="update-progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <script>
+    let registration;
+    let updateCheckInterval;
+    let versionElement = document.getElementById('version');
+    let statusTextElement = document.getElementById('statusText');
+    let progressBar = document.getElementById('progressBar');
+
+    // Registrar Service Worker y configurar detección de actualizaciones
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        try {
+          // Registrar el Service Worker
+          registration = await navigator.serviceWorker.register('/service-worker.js', {
+            updateViaCache: 'none' // Importante: no usar cache para updates
+          });
+          
+          console.log('SW registrado:', registration);
+          
+          // Configurar la detección de actualizaciones
+          setupUpdateDetection(registration);
+          
+          // Verificar actualización inmediatamente
+          checkForUpdate();
+          
+          // Establecer verificación periódica cada 30 segundos
+          updateCheckInterval = setInterval(checkForUpdate, 30000);
+          
+        } catch (error) {
+          console.error('Error registrando SW:', error);
+          statusTextElement.textContent = 'Error registrando Service Worker';
+        }
+      });
+    } else {
+      statusTextElement.textContent = 'Service Worker no compatible';
+    }
+
+    // Configurar la detección de actualizaciones
+    function setupUpdateDetection(reg) {
+      // Escuchar actualizaciones encontradas
+      reg.addEventListener('updatefound', () => {
+        console.log('Nueva versión del Service Worker detectada');
+        statusTextElement.innerHTML = 'Nueva versión detectada <span class="loading"></span>';
+        
+        const newWorker = reg.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+          console.log('Estado del nuevo SW:', newWorker.state);
+          
+          if (newWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              // Hay una nueva versión disponible
+              console.log('Nueva versión instalada, activando...');
+              statusTextElement.textContent = 'Activando nueva versión...';
+              
+              // Forzar la activación inmediata
+              activateNewVersion();
+            }
+          }
+        });
+      });
+    }
+
+    // Verificar actualizaciones
+    async function checkForUpdate() {
+      if (!registration) return;
+      
+      try {
+        // Forzar la verificación de actualizaciones
+        await registration.update();
+        console.log('Verificación de actualización completada');
+      } catch (error) {
+        console.error('Error verificando actualizaciones:', error);
+      }
+    }
+
+    // Activar nueva versión inmediatamente
+    function activateNewVersion() {
+      if (registration && registration.waiting) {
+        // Mostrar progreso de actualización
+        simulateProgress();
+        
+        // Enviar mensaje al SW para saltar la espera
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    }
+
+    // Simular barra de progreso
+    function simulateProgress() {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        progressBar.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(interval);
+          statusTextElement.textContent = '¡Actualización completada!';
+          
+          // La recarga ocurrirá automáticamente por el evento controllerchange
+        }
+      }, 150);
+    }
+
+    // Escuchar cambios de controlador (cuando se activa un nuevo SW)
+    let isReloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!isReloading) {
+        console.log('Nuevo Service Worker tomando control, recargando...');
+        isReloading = true;
+        
+        // Pequeño delay para asegurar que el nuevo SW esté listo
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }
+    });
+
+    // Escuchar mensajes del Service Worker
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data && event.data.type === 'VERSION_UPDATE') {
+        versionElement.textContent = event.data.version;
+      }
+    });
+
+    // Limpiar intervalo cuando la página se cierre
+    window.addEventListener('beforeunload', () => {
+      if (updateCheckInterval) {
+        clearInterval(updateCheckInterval);
+      }
+    });
+
+    function vibrate() {
+      if ('vibrate' in navigator) {
+        window.navigator.vibrate([300, 100, 300]);
+      } else {
+        alert('💥 Vibración simulada (iOS no la soporta)');
+      }
+    }
+  </script>
+</body>
 </html>
