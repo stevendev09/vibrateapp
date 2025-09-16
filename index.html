@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibrar App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6200ea">
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #121212;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    button {
+      padding: 20px 40px;
+      font-size: 22px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      background: #6200ea;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.95);
+      background: #3700b3;
+    }
+  </style>
+</head>
+
+<body>
+  <button onclick="vibrate()">Vibrar</button>
+
+  <script>
+    function vibrate() {
+      if ("vibrate" in navigator) {
+        window.navigator.vibrate([300, 100, 300]);
+      } else {
+        // Fallback en iOS
+        alert("💥 Vibración simulada (iOS no la soporta)");
+      }
+    }
+  </script>
+</body>
+
+</html>

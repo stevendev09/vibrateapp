@@ -1,0 +1,30 @@
+{
+  "id": "/",
+  "name": "Vibrar App",
+  "short_name": "Vibrar",
+  "description": "Una app simple para hacer vibrar tu celular.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#121212",
+  "theme_color": "#6200ea",
+  "dir": "ltr",
+  "lang": "es-CR",
+  "categories": ["utilities", "tools", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
