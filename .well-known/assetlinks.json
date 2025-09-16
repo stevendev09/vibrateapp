@@ -5,9 +5,9 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "com.vibrar.app",
+            "package_name": "app.netlify.vibrarapp.twa",
             "sha256_cert_fingerprints": [
-                " BD:5D:86:7F:E6:09:C5:F2:66:59:34:94:3F:E3:08:19:AF:EB:D4:98:32:7A:31:D7:0D:7F:4E:7C:07:3A:0F:66"
+                "BD:5D:86:7F:E6:09:C5:F2:66:59:34:94:3F:E3:08:19:AF:EB:D4:98:32:7A:31:D7:0D:7F:4E:7C:07:3A:0F:66"
             ]
         }
     }
