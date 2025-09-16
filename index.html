@@ -10,14 +10,35 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then(reg => {
-        navigator.serviceWorker.addEventListener('message', event => {
-          if (event.data.type === 'NEW_VERSION_AVAILABLE') {
-            alert("¡Nueva versión disponible! Por favor recarga la página.");
-            // opcional: mostrar un botón en la UI para recargar
-          }
+
+        // Detecta SW nuevo y notifica
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                console.log('Nueva versión disponible');
+                // Aquí podrías mostrar un banner o alerta opcional
+              }
+            }
+          });
         });
+
+      });
+
+      // Hot reload inmediato cuando vuelve de segundo plano
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg?.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              location.reload(); // Aplica la nueva versión inmediatamente
+            }
+          });
+        }
       });
     }
+
 
   </script>
   <style>

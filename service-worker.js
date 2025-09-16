@@ -1,4 +1,4 @@
-const CACHE_NAME = "vibrar-app-v7"; // Cambia esta versión en cada release
+const CACHE_NAME = "vibrar-app-v8";
 const ASSETS_TO_CACHE = [
   "/",
   "/index.html",
@@ -7,7 +7,7 @@ const ASSETS_TO_CACHE = [
   "/icons/icon-512.png"
 ];
 
-// 👉 Instalar y precachear assets
+// Instalar y precachear assets
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
@@ -15,7 +15,7 @@ self.addEventListener("install", event => {
   self.skipWaiting();
 });
 
-// 👉 Activar y limpiar caches antiguos
+// Activar y limpiar caches antiguos
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -27,25 +27,17 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// 👉 Estrategia de cache
+// Estrategia de fetch
 self.addEventListener("fetch", event => {
   if (event.request.url.startsWith("chrome-extension")) return;
 
-  // Network-first para navegaciones (HTML)
+  // Network-first para index.html
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request)
         .then(networkResponse => {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
-
-          // Notificar a los clientes que hay una nueva versión
-          self.clients.matchAll().then(clients => {
-            clients.forEach(client => {
-              client.postMessage({ type: "NEW_VERSION_AVAILABLE" });
-            });
-          });
-
           return networkResponse;
         })
         .catch(() => caches.match("/index.html"))
@@ -74,4 +66,11 @@ self.addEventListener("fetch", event => {
         });
     })
   );
+});
+
+// Hot reload: escucha mensaje de frontend
+self.addEventListener('message', event => {
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
